@@ -469,6 +469,38 @@
             width: 100%;
             height: 150px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: background-color 0.2s;
+        }
+        .profile-banner:hover {
+            filter: brightness(0.9);
+        }
+        .banner-edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .profile-banner:hover .banner-edit-overlay {
+            opacity: 1;
+        }
+        .profile-banner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-size: cover;
+            background-position: center;
         }
         .profile-content {
             padding: 0 16px 20px 16px;
@@ -676,6 +708,142 @@
             background: #f7f9f9;
         }
 
+        /* BANNER SETTINGS PAGE */
+        .banner-settings-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .banner-settings-page.active {
+            display: flex;
+        }
+        .banner-settings-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+        .banner-settings-title {
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+        }
+        .banner-settings-content {
+            padding: 20px 16px;
+            flex: 1;
+        }
+        .banner-preview-container {
+            width: 100%;
+            height: 150px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+            border: 2px dashed #e0e0e0;
+        }
+        .banner-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-size: cover;
+            background-position: center;
+        }
+        .crop-controls {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #f7f9f9;
+            border-radius: 8px;
+        }
+        .crop-slider-container {
+            margin-bottom: 16px;
+        }
+        .crop-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #536471;
+        }
+        .crop-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: #cfd9de;
+            border-radius: 2px;
+            outline: none;
+        }
+        .crop-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #1d9bf0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .crop-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .crop-button {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 20px;
+            border: 1px solid #cfd9de;
+            background: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .crop-button:hover {
+            background: #f7f9f9;
+        }
+        .crop-button.save {
+            background: #1d9bf0;
+            color: white;
+            border-color: #1d9bf0;
+        }
+        .crop-button.save:hover {
+            background: #1a8cd8;
+        }
+        .no-image-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #536471;
+            font-size: 14px;
+        }
+        .banner-upload-button {
+            width: 100%;
+            padding: 14px 20px;
+            background: white;
+            border: 2px dashed #cfd9de;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            transition: background-color 0.2s;
+        }
+        .banner-upload-button:hover {
+            background: #f7f9f9;
+        }
+
         /* SIGN OUT BUTTON STYLES */
         .signout-button {
             width: 100%;
@@ -822,7 +990,9 @@
    <div class="profile-header"> <button class="back-button" onclick="closeProfile()"> <i class="fas fa-arrow-left"></i> </button> 
     <div class="profile-nav-title">Profile</div> 
    </div> 
-   <div class="profile-banner"></div> 
+   <div class="profile-banner" id="profile-banner" onclick="openBannerSettings()"> 
+    <div class="banner-edit-overlay">Click to edit banner</div>
+   </div> 
    <div class="profile-content"> 
     <div class="profile-avatar-container"> 
      <div class="profile-avatar-large" id="main-p-avatar"></div> 
@@ -861,7 +1031,51 @@
       <div class="avatar-preview" id="avatar-preview"></div> <button class="upload-button" onclick="changeProfilePicture()">Change photo</button> 
      </div> 
     </div> 
+    <div class="form-group">
+      <label class="form-label">Banner</label>
+      <button class="banner-upload-button" onclick="openBannerSettings()">
+        <i class="fas fa-image"></i> Edit Banner
+      </button>
+    </div>
    </div> 
+  </div>
+
+  <!-- Banner Settings Page -->
+  <div class="banner-settings-page" id="banner-settings-page">
+    <div class="banner-settings-header">
+      <button class="back-button" onclick="closeBannerSettings()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="banner-settings-title">Edit Banner</div>
+      <button class="save-button" onclick="saveBanner()">Save</button>
+    </div>
+    <div class="banner-settings-content">
+      <div class="banner-preview-container" id="banner-preview-container">
+        <div class="banner-preview" id="banner-preview"></div>
+      </div>
+      <div class="no-image-message" id="no-banner-message">
+        <i class="fas fa-image" style="font-size: 48px; margin-bottom: 16px; color: #cfd9de;"></i>
+        <p>No banner selected</p>
+        <p style="font-size: 12px; margin-top: 8px;">Upload an image to set as your banner</p>
+      </div>
+      <button class="banner-upload-button" onclick="uploadBannerImage()">
+        <i class="fas fa-upload"></i> Upload Banner Image
+      </button>
+      <div class="crop-controls" id="crop-controls" style="display: none;">
+        <div class="crop-slider-container">
+          <label class="crop-label">Zoom: <span id="zoom-level">100%</span></label>
+          <input type="range" min="50" max="200" value="100" class="crop-slider" id="zoom-slider" oninput="updateZoom()">
+        </div>
+        <div class="crop-slider-container">
+          <label class="crop-label">Position: <span id="position-level">50%</span></label>
+          <input type="range" min="0" max="100" value="50" class="crop-slider" id="position-slider" oninput="updatePosition()">
+        </div>
+        <div class="crop-buttons">
+          <button class="crop-button" onclick="resetBannerCrop()">Reset</button>
+          <button class="crop-button save" onclick="saveBanner()">Save Banner</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -871,11 +1085,16 @@
         // 2. Add your HTTPS domain to "Authorized JavaScript origins"
         // 3. Add your redirect URI if needed
         
-        const CLIENT_ID = "475953482378-13nkc3mdkr8mtflsb20qhp4a76bl4t0o.apps.googleusercontent.com";
+        const CLIENT_ID = "475953482378-313ua2c3so1muentri4susm7o9hgp0gc.apps.googleusercontent.com";
         let tokenClient = null;
         let isSignedIn = false;
         let userData = null;
         let googleSDKLoaded = false;
+        
+        // Banner variables
+        let currentBannerImage = null;
+        let bannerZoom = 100;
+        let bannerPosition = 50;
 
         // Check Chrome Storage API availability
         const storage = chrome?.storage?.sync || {
@@ -978,6 +1197,12 @@
                     userData = result.userData;
                     isSignedIn = true;
                     updateProfileUI();
+                    // Load banner if exists
+                    if (userData.banner) {
+                        currentBannerImage = userData.banner;
+                        updateBannerPreview();
+                        updateProfileBanner();
+                    }
                 }
             });
 
@@ -1014,7 +1239,8 @@
                 picture: "https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser",
                 handle: "@demouser",
                 location: "San Francisco, CA",
-                website: "johndoe.dev"
+                website: "johndoe.dev",
+                banner: null
             };
 
             isSignedIn = true;
@@ -1046,7 +1272,8 @@
                     picture: data.picture || "https://api.dicebear.com/7.x/avataaars/svg?seed=GoogleUser",
                     handle: "@" + (data.email ? data.email.split('@')[0] : "googleuser"),
                     location: "San Francisco, CA",
-                    website: "johndoe.dev"
+                    website: "johndoe.dev",
+                    banner: null
                 };
 
                 isSignedIn = true;
@@ -1131,6 +1358,110 @@
             }
         }
 
+        // BANNER FUNCTIONS
+        function openBannerSettings() {
+            document.getElementById('banner-settings-page').classList.add('active');
+            if (currentBannerImage) {
+                updateBannerPreview();
+            }
+        }
+
+        function closeBannerSettings() {
+            document.getElementById('banner-settings-page').classList.remove('active');
+        }
+
+        function uploadBannerImage() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            
+            fileInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        currentBannerImage = event.target.result;
+                        bannerZoom = 100;
+                        bannerPosition = 50;
+                        updateBannerPreview();
+                        document.getElementById('crop-controls').style.display = 'block';
+                        document.getElementById('no-banner-message').style.display = 'none';
+                        updateZoom();
+                        updatePosition();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            
+            fileInput.click();
+        }
+
+        function updateBannerPreview() {
+            if (currentBannerImage) {
+                const preview = document.getElementById('banner-preview');
+                preview.style.backgroundImage = `url('${currentBannerImage}')`;
+                preview.style.backgroundSize = `${bannerZoom}%`;
+                preview.style.backgroundPosition = `center ${bannerPosition}%`;
+                document.getElementById('crop-controls').style.display = 'block';
+                document.getElementById('no-banner-message').style.display = 'none';
+            }
+        }
+
+        function updateProfileBanner() {
+            if (currentBannerImage) {
+                const banner = document.getElementById('profile-banner');
+                banner.style.backgroundImage = `url('${currentBannerImage}')`;
+                banner.style.backgroundSize = 'cover';
+                banner.style.backgroundPosition = 'center';
+                banner.style.background = 'none';
+            } else {
+                const banner = document.getElementById('profile-banner');
+                banner.style.backgroundImage = '';
+                banner.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        }
+
+        function updateZoom() {
+            bannerZoom = document.getElementById('zoom-slider').value;
+            document.getElementById('zoom-level').textContent = bannerZoom + '%';
+            updateBannerPreview();
+        }
+
+        function updatePosition() {
+            bannerPosition = document.getElementById('position-slider').value;
+            document.getElementById('position-level').textContent = bannerPosition + '%';
+            updateBannerPreview();
+        }
+
+        function resetBannerCrop() {
+            bannerZoom = 100;
+            bannerPosition = 50;
+            document.getElementById('zoom-slider').value = 100;
+            document.getElementById('position-slider').value = 50;
+            updateZoom();
+            updatePosition();
+        }
+
+        function saveBanner() {
+            if (currentBannerImage) {
+                // Update user data with banner
+                if (isSignedIn && userData) {
+                    userData.banner = currentBannerImage;
+                    storage.set({ userData: userData });
+                }
+                
+                // Update profile banner
+                updateProfileBanner();
+                
+                // Close banner settings
+                closeBannerSettings();
+                
+                alert('Banner saved successfully!');
+            } else {
+                alert('Please upload a banner image first.');
+            }
+        }
+
         function updateProfileUI() {
             if(!userData) return;
             document.getElementById('header-p-btn').style.backgroundImage = `url('${userData.picture}')`;
@@ -1150,12 +1481,19 @@
                 document.getElementById('main-p-website').textContent = userData.website;
                 document.getElementById('edit-website').value = userData.website;
             }
+            
+            // Update banner if exists
+            if (userData.banner) {
+                currentBannerImage = userData.banner;
+                updateProfileBanner();
+            }
         }
 
         function signOut() {
             // Clear user data
             userData = null;
             isSignedIn = false;
+            currentBannerImage = null;
             
             // Clear from storage
             storage.remove(['userData', 'isSignedIn'], function() {
@@ -1175,6 +1513,11 @@
             document.getElementById('edit-username').value = "@johndoe";
             document.getElementById('edit-location').value = "San Francisco, CA";
             document.getElementById('edit-website').value = "johndoe.dev";
+            
+            // Reset banner
+            const banner = document.getElementById('profile-banner');
+            banner.style.backgroundImage = '';
+            banner.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             
             // Close profile page
             closeProfile();
