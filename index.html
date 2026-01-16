@@ -473,6 +473,8 @@
             position: relative;
             overflow: hidden;
             transition: background-color 0.2s;
+            background-size: cover;
+            background-position: center;
         }
         .profile-banner:hover {
             filter: brightness(0.9);
@@ -1200,6 +1202,8 @@
                     // Load banner if exists
                     if (userData.banner) {
                         currentBannerImage = userData.banner;
+                        bannerZoom = userData.bannerZoom || 100;
+                        bannerPosition = userData.bannerPosition || 50;
                         updateBannerPreview();
                         updateProfileBanner();
                     }
@@ -1240,7 +1244,9 @@
                 handle: "@demouser",
                 location: "San Francisco, CA",
                 website: "johndoe.dev",
-                banner: null
+                banner: null,
+                bannerZoom: 100,
+                bannerPosition: 50
             };
 
             isSignedIn = true;
@@ -1273,7 +1279,9 @@
                     handle: "@" + (data.email ? data.email.split('@')[0] : "googleuser"),
                     location: "San Francisco, CA",
                     website: "johndoe.dev",
-                    banner: null
+                    banner: null,
+                    bannerZoom: 100,
+                    bannerPosition: 50
                 };
 
                 isSignedIn = true;
@@ -1363,6 +1371,9 @@
             document.getElementById('banner-settings-page').classList.add('active');
             if (currentBannerImage) {
                 updateBannerPreview();
+            } else {
+                document.getElementById('crop-controls').style.display = 'none';
+                document.getElementById('no-banner-message').style.display = 'block';
             }
         }
 
@@ -1386,6 +1397,8 @@
                         updateBannerPreview();
                         document.getElementById('crop-controls').style.display = 'block';
                         document.getElementById('no-banner-message').style.display = 'none';
+                        document.getElementById('zoom-slider').value = 100;
+                        document.getElementById('position-slider').value = 50;
                         updateZoom();
                         updatePosition();
                     };
@@ -1404,20 +1417,26 @@
                 preview.style.backgroundPosition = `center ${bannerPosition}%`;
                 document.getElementById('crop-controls').style.display = 'block';
                 document.getElementById('no-banner-message').style.display = 'none';
+            } else {
+                document.getElementById('crop-controls').style.display = 'none';
+                document.getElementById('no-banner-message').style.display = 'block';
             }
         }
 
         function updateProfileBanner() {
+            const banner = document.getElementById('profile-banner');
             if (currentBannerImage) {
-                const banner = document.getElementById('profile-banner');
+                // IMPORTANT FIX: Set background image and remove gradient
                 banner.style.backgroundImage = `url('${currentBannerImage}')`;
                 banner.style.backgroundSize = 'cover';
                 banner.style.backgroundPosition = 'center';
-                banner.style.background = 'none';
+                banner.style.background = ''; // Clear the gradient background
+                banner.style.backgroundColor = ''; // Clear any background color
             } else {
-                const banner = document.getElementById('profile-banner');
+                // Reset to default gradient
                 banner.style.backgroundImage = '';
                 banner.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                banner.style.backgroundColor = '';
             }
         }
 
@@ -1447,10 +1466,12 @@
                 // Update user data with banner
                 if (isSignedIn && userData) {
                     userData.banner = currentBannerImage;
+                    userData.bannerZoom = bannerZoom;
+                    userData.bannerPosition = bannerPosition;
                     storage.set({ userData: userData });
                 }
                 
-                // Update profile banner
+                // Update profile banner - THIS IS THE FIX
                 updateProfileBanner();
                 
                 // Close banner settings
@@ -1485,6 +1506,8 @@
             // Update banner if exists
             if (userData.banner) {
                 currentBannerImage = userData.banner;
+                bannerZoom = userData.bannerZoom || 100;
+                bannerPosition = userData.bannerPosition || 50;
                 updateProfileBanner();
             }
         }
@@ -1494,6 +1517,8 @@
             userData = null;
             isSignedIn = false;
             currentBannerImage = null;
+            bannerZoom = 100;
+            bannerPosition = 50;
             
             // Clear from storage
             storage.remove(['userData', 'isSignedIn'], function() {
@@ -1518,6 +1543,14 @@
             const banner = document.getElementById('profile-banner');
             banner.style.backgroundImage = '';
             banner.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            banner.style.backgroundColor = '';
+            
+            // Reset banner preview
+            document.getElementById('banner-preview').style.backgroundImage = '';
+            document.getElementById('no-banner-message').style.display = 'block';
+            document.getElementById('crop-controls').style.display = 'none';
+            document.getElementById('zoom-slider').value = 100;
+            document.getElementById('position-slider').value = 50;
             
             // Close profile page
             closeProfile();
