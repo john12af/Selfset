@@ -475,6 +475,7 @@
             transition: background-color 0.2s;
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
         }
         .profile-banner:hover {
             filter: brightness(0.9);
@@ -1426,17 +1427,16 @@
         function updateProfileBanner() {
             const banner = document.getElementById('profile-banner');
             if (currentBannerImage) {
-                // IMPORTANT FIX: Set background image and remove gradient
+                // SET THE IMAGE AS BANNER - FIXED
                 banner.style.backgroundImage = `url('${currentBannerImage}')`;
                 banner.style.backgroundSize = 'cover';
                 banner.style.backgroundPosition = 'center';
-                banner.style.background = ''; // Clear the gradient background
-                banner.style.backgroundColor = ''; // Clear any background color
+                // Remove gradient completely
+                banner.style.background = `url('${currentBannerImage}') center/cover no-repeat`;
             } else {
-                // Reset to default gradient
+                // Reset to gradient only when no banner
                 banner.style.backgroundImage = '';
                 banner.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                banner.style.backgroundColor = '';
             }
         }
 
@@ -1539,11 +1539,10 @@
             document.getElementById('edit-location').value = "San Francisco, CA";
             document.getElementById('edit-website').value = "johndoe.dev";
             
-            // Reset banner
+            // Reset banner to gradient
             const banner = document.getElementById('profile-banner');
             banner.style.backgroundImage = '';
             banner.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-            banner.style.backgroundColor = '';
             
             // Reset banner preview
             document.getElementById('banner-preview').style.backgroundImage = '';
