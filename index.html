@@ -3,61 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Chat App</title>
+    <title>Gemini Live Voice</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #f0f2f5; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; border-bottom: 1px solid #ccc; }
-        .message { margin-bottom: 15px; padding: 10px; border-radius: 10px; max-width: 80%; }
-        .user { background: #007bff; color: white; align-self: flex-end; margin-left: auto; }
-        .ai { background: #e4e6eb; color: black; }
-        .input-area { padding: 10px; display: flex; background: white; }
-        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none; }
-        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; margin-left: 5px; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
+        .status { margin: 20px; font-size: 1.2rem; color: #00d4ff; }
+        .mic-btn { 
+            width: 80px; height: 80px; border-radius: 50%; border: none; 
+            background: #ff4b2b; color: white; font-size: 1.5rem; cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 75, 43, 0.5);
+        }
+        .listening { animation: pulse 1.5s infinite; background: #28a745; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div id="chat-box">
-        <div class="message ai">Hello! Main Gemini AI hoon. Main aapki kaise madad kar sakta hoon?</div>
-    </div>
-
-    <div class="input-area">
-        <input type="text" id="user-input" placeholder="Yahan likhein...">
-        <button onclick="sendMessage()">Bhejein</button>
-    </div>
+    <h1>Gemini Live</h1>
+    <div id="status" class="status">Button dabayein aur bolna shuru karein</div>
+    
+    <button id="mic-btn" class="mic-btn" onclick="startVoiceChat()">🎤</button>
 
     <script type="module">
-        // Google ki library import karein
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-        // 1. APNA API KEY YAHAN DAL EIN
-        const API_KEY = "AIzaSyCZNy3Y1j5M_R3BhH4oPi8TeXxQxl5ijzc";
+        const API_KEY = "YOUR_API_KEY_HERE"; // Yahan apni key dalein
         const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        window.sendMessage = async function() {
-            const inputField = document.getElementById('user-input');
-            const chatBox = document.getElementById('chat-box');
-            const message = inputField.value;
+        const statusText = document.getElementById('status');
+        const micBtn = document.getElementById('mic-btn');
 
-            if (!message) return;
+        // 1. Voice Recognition (Sunne ke liye)
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'hi-IN'; // Hindi/English dono samjhega
 
-            // User ka message screen par dikhayein
-            chatBox.innerHTML += `<div class="message user">${message}</div>`;
-            inputField.value = "";
+        window.startVoiceChat = function() {
+            recognition.start();
+            statusText.innerText = "Main sun raha hoon...";
+            micBtn.classList.add('listening');
+        };
 
+        recognition.onresult = async (event) => {
+            const userText = event.results[0][0].transcript;
+            statusText.innerText = "Aapne kaha: " + userText;
+            micBtn.classList.remove('listening');
+
+            // 2. Gemini se jawab lein
             try {
-                // Gemini se jawab mangein
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const result = await model.generateContent(message);
-                const response = await result.response;
-                const text = response.text();
-
-                // AI ka jawab screen par dikhayein
-                chatBox.innerHTML += `<div class="message ai">${text}</div>`;
-                chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll
-            } catch (error) {
-                chatBox.innerHTML += `<div class="message ai">Error: API Key check karein ya internet dekhein.</div>`;
+                const result = await model.generateContent(userText);
+                const responseText = await result.response.text();
+                speak(responseText); // AI ko bulwayein
+            } catch (err) {
+                statusText.innerText = "Error ho gaya!";
             }
+        };
+
+        // 3. Text to Speech (Bolne ke liye)
+        function speak(text) {
+            statusText.innerText = "Gemini bol raha hai...";
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'hi-IN'; // Hindi voice
+            window.speechSynthesis.speak(utterance);
+            
+            utterance.onend = () => {
+                statusText.innerText = "Jawab pura hua. Phir se bolne ke liye Mic dabayein.";
+            };
         }
     </script>
 </body>
